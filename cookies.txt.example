@@ -1,0 +1,29 @@
+# ════════════════════════════════════════════════════════════════════════════
+#  cookies.txt.example — EXEMPLO (não cole cookies reais aqui!)
+# ════════════════════════════════════════════════════════════════════════════
+#  A Yuna procura pelo arquivo REAL:
+#    • cookies.txt                       → raiz do projeto, OU
+#    • o caminho de YUNA_COOKIES_FILE    → definido no .env
+#
+#  NUNCA commite cookies: o arquivo .gitignore já bloqueia o cookies.txt.
+#
+#  Como gerar o arquivo (formato Netscape):
+#  ──────────────────────────────────────────────────────────────────────────
+#  1. Instale uma extensão exportadora de cookies:
+#       Chrome/Edge/Brave: "Get cookies.txt LOCALLY"
+#       Firefox:           "cookies.txt"
+#  2. Abra https://www.youtube.com logado na SUA conta (uma conta nova sem
+#     histórico também funciona e reduz risco de punição na conta principal).
+#  3. Clique na extensão → Export → formato "Netscape" → salve como
+#     `cookies.txt` na raiz do projeto (mesma pasta do main.py).
+#  4. Reinicie o bot.
+#
+#  Dicas:
+#    • Renove o arquivo ~1x por semana, ou sempre que aparecer o erro
+#      "Sign in to confirm you're not a bot".
+#    • Complemente com o PO Token (bgutil) — veja a seção do README
+#      "PO Token / bgutil-ytdlp-pot-provider".
+#
+#  Formato Netscape (exemplo de UMA linha — NÃO é um cookie real):
+#  .youtube.com	TRUE	/	TRUE	0	VISITOR_INFO1_LIVE	exemplo_de_valor
+# ════════════════════════════════════════════════════════════════════════════

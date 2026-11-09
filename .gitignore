@@ -1,0 +1,22 @@
+# ── Segredos e sessão (NUNCA commitar) ──────────────────────────────────────
+.env
+cookies.txt
+*.cookies
+
+# ── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ── Sistema e IDE ───────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ── Logs e arquivos temporários ─────────────────────────────────────────────
+*.log
+downloads/

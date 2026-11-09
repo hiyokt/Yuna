@@ -1,0 +1,17 @@
+# ── Yuna — dependências (Python 3.11+) ───────────────────────────────────────
+# Instale com:  pip install -r requirements.txt
+
+# Biblioteca do Discord — o extra [voice] instala as dependências DE VOZ:
+# PyNaCl (criptografia clássica) e davey (protocolo DAVE/E2EE exigido pelo
+# Discord para voz desde 2025 — sem ele: RuntimeError 'davey library needed')
+discord.py[voice]>=2.4.0,<3.0
+
+# Criptografia de voz clássica (libsodium) — instalada pelo extra [voice]
+PyNaCl>=1.5.0,<2.0
+
+# Extração de áudio do YouTube — mantenha SEMPRE atualizado:
+#   pip install -U yt-dlp
+yt-dlp>=2024.12.13
+
+# Carrega variáveis de ambiente do arquivo .env
+python-dotenv>=1.0.0,<2.0

@@ -1,0 +1,13 @@
+# ════════════════════════════════════════════════════════════════════════════
+#  .dockerignore — mantém segredos e caches FORA da imagem da Yuna
+# ════════════════════════════════════════════════════════════════════════════
+.env
+cookies.txt
+*.cookies
+yuna_test.py
+__pycache__/
+*.py[cod]
+venv/
+.git/
+.gitignore
+README.md
