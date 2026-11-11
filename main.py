@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 
 from utils import messages, ytdl
 from utils.dave_fix import apply_dave_patch
+from utils.ffmpeg import ensure_deno_path
 
 log = logging.getLogger("yuna.main")
 
@@ -135,6 +136,16 @@ def main() -> None:
 
     # Workaround do bug de silêncio (davey): deve rodar antes do bot.connect.
     apply_dave_patch()
+
+    # Deno no PATH: o yt-dlp precisa dele para resolver o desafio "n" do
+    # YouTube (sem = formatos de áudio descartados = "format not available").
+    if ensure_deno_path():
+        log.info("Deno disponível (runtime JS do yt-dlp para o desafio 'n' do YouTube)")
+    else:
+        log.warning(
+            "Deno NÃO encontrado — o yt-dlp pode falhar com 'Requested format is not "
+            "available'. Instale com: winget install DenoLand.Deno"
+        )
 
     # Aviso sobre cookies acontece APÓS o logging estar configurado
     ytdl.warn_if_no_cookies()

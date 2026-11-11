@@ -62,3 +62,29 @@ def find_ffmpeg(force: bool = False) -> Optional[str]:
         return candidate
 
     return None
+
+
+def ensure_deno_path() -> bool:
+    """Garante que o deno (runtime JS exigido pelo yt-dlp/EJS) esteja no PATH.
+
+    O YouTube roda um desafio `n` de assinatura que o yt-dlp resolve com um
+    runtime JavaScript (EJS + deno). Sem ele, os formatos de áudio são
+    DESCARTADOS e o play falha com 'Requested format is not available'.
+
+    O winget instala o deno em `Packages\\DenoLand.Deno*\\` SEM alias
+    confiável no `Links` — e o yt-dlp sonda o PATH do processo a cada
+    extração. Aqui colocamos o diretório dele no PATH do processo
+    (idempotente; segue a mesma tática do find_ffmpeg para o ffmpeg).
+    """
+    if shutil.which("deno"):
+        return True
+
+    local_app = os.getenv("LOCALAPPDATA") or ""
+    winget_packages = os.path.join(local_app, "Microsoft", "WinGet", "Packages")
+    deno = glob.glob(os.path.join(winget_packages, "DenoLand.Deno*", "deno.exe"))
+    candidate = _first_existing(deno)
+    if candidate is None:
+        return False
+
+    os.environ["PATH"] = os.path.dirname(candidate) + os.pathsep + os.environ.get("PATH", "")
+    return True
