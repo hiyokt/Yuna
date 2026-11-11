@@ -9,9 +9,11 @@ Responsabilidades:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import sys
+import time
 
 import discord
 from discord.ext import commands
@@ -74,6 +76,31 @@ class YunaBot(commands.Bot):
         """Carrega extensões antes de conectar à gateway."""
         await self.load_extension("cogs.music")
         log.info("Extensão 'cogs.music' carregada")
+        self.loop.create_task(self._lag_watchdog())
+
+    @staticmethod
+    async def _lag_watchdog(interval: float = 1.0, threshold: float = 0.7) -> None:
+        """Mede a saúde do event loop: se ele dormir além do esperado, loga.
+
+        A cada `interval` a task dorme `asyncio.sleep(interval)`; como o loop
+        deveria acordá-la em ponto (±jitter de kHz), um atraso bem acima
+        disso significa que ALGO bloqueou/estrelou o loop (GIL do yt-dlp,
+        I/O síncrono, CPU carregada) — a causa raiz de "linhagens de lag".
+        Loga no máx. 1 vez a cada 5s para não virar espalhafato.
+        """
+        last_warn = 0.0
+        while True:
+            started = time.perf_counter()
+            await asyncio.sleep(interval)
+            drift = time.perf_counter() - started - interval
+            if drift > threshold and time.perf_counter() - last_warn > 5.0:
+                last_warn = time.perf_counter()
+                log.warning(
+                    "Loop congestionado: tarefa dormindo %.2fs a mais que os %.1fs "
+                    "esperados (CPU/loop bloqueados ou estrelados)",
+                    drift,
+                    interval,
+                )
 
     async def on_ready(self) -> None:
         log.info("%s Servidor(es) conectado(s): %d", messages.ON_READY, len(self.guilds))

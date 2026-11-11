@@ -182,17 +182,34 @@ class MusicCog(commands.Cog, name="Música"):
         executable = find_ffmpeg()
         if executable is None:
             log.error("FFmpeg não encontrado nem no PATH nem em WinGet/Gyan — impossível tocar")
-            q.forget_current()  # não trava a fila com uma música quebrada
+            queue.forget_current()  # não trava a fila com uma música quebrada
             await self._send(guild_id, messages.error_embed(messages.FFMPEG_MISSING))
             return
-        source = discord.PCMVolumeTransformer(
-            discord.FFmpegPCMAudio(stream_url, executable=executable, **FFMPEG_OPTIONS),
-            volume=self._volume(guild_id),
-        )
+
+        # Spawn do FFmpeg FORA do event loop: no Windows, o Popen do
+        # ffmpeg.exe (carregamento + Defender) pode travar o loop por
+        # ~0.5–1.5s — congestionando gateway, comandos e voz (a "lagada"
+        # no início de cada música). O read() do áudio já é em thread
+        # própria do discord.py; aqui só a CONSTRUÇÃO sai do loop.
+        def _build_source() -> discord.PCMVolumeTransformer:
+            return discord.PCMVolumeTransformer(
+                discord.FFmpegPCMAudio(stream_url, executable=executable, **FFMPEG_OPTIONS),
+                volume=self._volume(guild_id),
+            )
+
+        loop = asyncio.get_running_loop()
+        try:
+            source = await loop.run_in_executor(None, _build_source)
+        except Exception:
+            log.exception("FFmpeg falhou ao iniciar a memória '%s'", song.title)
+            queue.forget_current()  # não trava a fila com uma música quebrada
+            await self._send(guild_id, messages.error_embed(messages.INVALID_URL))
+            return
+
         try:
             vc.play(source, after=self._make_after(guild_id))
         except Exception:
-            log.exception("FFmpeg falhou ao iniciar a memória '%s'", song.title)
+            log.exception("vc.play falhou para a memória '%s'", song.title)
             queue.forget_current()  # não trava a fila com uma música quebrada
             await self._send(guild_id, messages.error_embed(messages.INVALID_URL))
             return
