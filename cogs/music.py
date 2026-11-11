@@ -179,6 +179,26 @@ class MusicCog(commands.Cog, name="Música"):
             return
 
         queue.set_current(song)
+
+        # Espera a transição DAVE completar antes do primeiro frame.
+        # O spawn síncrono do FFmpeg (agora no executor) antes levava ~1s e
+        # dava tempo ao handshake por acidente; sem ele, um play imediato
+        # pode vencer a transição e sair SEM cifra (silêncio p/ os clients).
+        # No downgrade (protocol_version 0) não há sessão: toca direto.
+        state = getattr(vc, "_connection", None)
+        loop = asyncio.get_running_loop()
+        if state is not None and getattr(state, "dave_protocol_version", 0) > 0:
+            if getattr(state, "dave_session", None) is not None:
+                deadline = loop.time() + 4.0
+                while not getattr(state, "can_encrypt", False):
+                    if loop.time() >= deadline:
+                        log.warning(
+                            "Transição DAVE não completou em 4s (guild %s) — tocando mesmo assim",
+                            guild_id,
+                        )
+                        break
+                    await asyncio.sleep(0.02)
+
         executable = find_ffmpeg()
         if executable is None:
             log.error("FFmpeg não encontrado nem no PATH nem em WinGet/Gyan — impossível tocar")
@@ -197,7 +217,6 @@ class MusicCog(commands.Cog, name="Música"):
                 volume=self._volume(guild_id),
             )
 
-        loop = asyncio.get_running_loop()
         try:
             source = await loop.run_in_executor(None, _build_source)
         except Exception:
